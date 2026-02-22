@@ -270,6 +270,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
     input[type=text]:focus, input[type=password]:focus {
         box-shadow: var(--border-glow);
     }
+    input[type=text].error {
+        border-color: #ff4141;
+        box-shadow: 0 0 8px #ff4141;
+        color: #ff4141;
+    }
     button, input[type=submit] {
         background: transparent;
         border: 1px solid var(--matrix-green);
@@ -354,13 +359,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
     <?php else: ?>
     <form id="downloadForm">
         <label for="drive_link">TARGET FILE URL:</label>
-        <input type="text" name="drive_link" id="drive_link" placeholder="https://drive.google.com/file/d/FILE_ID/..." required autofocus />
+        <input type="text" name="drive_link" id="drive_link" placeholder="https://drive.google.com/file/d/FILE_ID/..." required autofocus aria-invalid="false" />
         <br/>
         <button type="submit" id="submitBtn">[INITIATE DOWNLOAD]</button>
     </form>
     <?php endif; ?>
 
-    <div class="log-window" id="logWindow">
+    <div class="log-window" id="logWindow" aria-live="polite" role="log">
     <?php
     // Parol xatosi kabi bir martalik xabarlarni ko'rsatish
     if (!empty($responseLog)) {
@@ -387,12 +392,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = document.getElementById('submitBtn');
     const linkInput = document.getElementById('drive_link');
 
+    const logMessage = (message, type = '') => {
+        const cursor = document.getElementById('cursor');
+        if (cursor) cursor.remove();
+
+        const p = document.createElement('p');
+        p.innerHTML = `> ${message}`;
+        if (type) p.classList.add(type);
+        logWindow.appendChild(p);
+
+        const newCursorP = document.createElement('p');
+        newCursorP.innerHTML = '> <span id="cursor" class="blinking-cursor"></span>';
+        logWindow.appendChild(newCursorP);
+        logWindow.scrollTop = logWindow.scrollHeight;
+    };
+
+    if (linkInput) {
+        linkInput.addEventListener('input', () => {
+            linkInput.classList.remove('error');
+            linkInput.setAttribute('aria-invalid', 'false');
+        });
+    }
+
     downloadForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
         const driveLink = linkInput.value;
+        const driveLinkPattern = /\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/;
+
         if (!driveLink) {
-            alert('Iltimos, Google Drive linkini kiriting.');
+            linkInput.classList.add('error');
+            logMessage("CRITICAL ERROR: Input required.", 'error');
+            return;
+        }
+
+        if (!driveLinkPattern.test(driveLink)) {
+            linkInput.classList.add('error');
+            linkInput.setAttribute('aria-invalid', 'true');
+            logMessage("SYSTEM ALERT: Invalid Google Drive URL format detected.", 'error');
             return;
         }
 
@@ -401,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.textContent = '[PROCESSING...]';
 
-        const url = ?start_download=1&drive_link=${encodeURIComponent(driveLink)};
+        const url = `?start_download=1&drive_link=${encodeURIComponent(driveLink)}`;
         const eventSource = new EventSource(url);
 
         eventSource.onmessage = (event) => {
@@ -412,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = JSON.parse(event.data);
             const p = document.createElement('p');
-            p.innerHTML = > ${data.message}; // Xabarni HTML sifatida qo'yish
+            p.innerHTML = `> ${data.message}`; // Xabarni HTML sifatida qo'yish
             
             if (data.event) {
                 p.classList.add(data.event);
