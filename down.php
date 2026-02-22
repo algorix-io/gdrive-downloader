@@ -360,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
     </form>
     <?php endif; ?>
 
-    <div class="log-window" id="logWindow">
+    <div class="log-window" id="logWindow" aria-live="polite" role="log">
     <?php
     // Parol xatosi kabi bir martalik xabarlarni ko'rsatish
     if (!empty($responseLog)) {
@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.textContent = '[PROCESSING...]';
 
-        const url = ?start_download=1&drive_link=${encodeURIComponent(driveLink)};
+        const url = `?start_download=1&drive_link=${encodeURIComponent(driveLink)}`;
         const eventSource = new EventSource(url);
 
         eventSource.onmessage = (event) => {
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = JSON.parse(event.data);
             const p = document.createElement('p');
-            p.innerHTML = > ${data.message}; // Xabarni HTML sifatida qo'yish
+            p.innerHTML = `> ${data.message}`; // Xabarni HTML sifatida qo'yish
             
             if (data.event) {
                 p.classList.add(data.event);
