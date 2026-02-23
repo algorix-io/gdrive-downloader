@@ -310,6 +310,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
         box-shadow: inset var(--border-glow);
         margin-top: 20px;
     }
+    .log-window:focus {
+        outline: none;
+        box-shadow: inset var(--border-glow), 0 0 8px var(--matrix-green);
+    }
     .log-window p {
         margin: 0 0 5px 0;
         word-wrap: break-word;
@@ -357,7 +361,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
         <input type="submit" value="[ENTER]" />
     </form>
     <?php else: ?>
-    <form id="downloadForm">
+    <form id="downloadForm" novalidate>
         <label for="drive_link">TARGET FILE URL:</label>
         <input type="text" name="drive_link" id="drive_link" placeholder="https://drive.google.com/file/d/FILE_ID/..." required autofocus aria-invalid="false" />
         <br/>
