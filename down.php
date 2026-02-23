@@ -356,7 +356,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
         <input type="submit" value="[ENTER]" />
     </form>
     <?php else: ?>
-    <form id="downloadForm">
+    <form id="downloadForm" novalidate>
         <label for="drive_link">TARGET FILE URL:</label>
         <input type="url" name="drive_link" id="drive_link" placeholder="https://drive.google.com/file/d/FILE_ID/..." required autofocus />
         <br/>
@@ -396,7 +396,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const driveLink = linkInput.value;
         if (!driveLink) {
-            alert('Iltimos, Google Drive linkini kiriting.');
+            logWindow.innerHTML = '<p class="error">> [XATO]: Iltimos, Google Drive linkini kiriting.</p><p>> <span id="cursor" class="blinking-cursor"></span></p>';
+            linkInput.focus();
             return;
         }
 
