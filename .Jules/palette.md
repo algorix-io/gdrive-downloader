@@ -1,3 +1,3 @@
-## 2025-05-22 - Accessibility of Console-like Interfaces
-**Learning:** Terminal/Console emulators using `div` append often miss `aria-live` regions, leaving screen reader users in the dark about progress.
-**Action:** Always wrap dynamic log containers in `aria-live="polite"` and consider `role="log"`.
+## 2024-05-23 - [Terminal Interface Accessibility]
+**Learning:** Terminal-like interfaces (log windows) are inaccessible to screen readers by default because new content is appended silently. Adding `aria-live="polite"` makes them usable instantly. Also, adding `tabindex="0"` allows keyboard users to scroll history.
+**Action:** Always add `aria-live` and `tabindex="0"` to any container that acts as a live log or console output.
