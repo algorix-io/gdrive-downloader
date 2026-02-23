@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.textContent = '[PROCESSING...]';
 
-        const url = ?start_download=1&drive_link=${encodeURIComponent(driveLink)};
+        const url = `?start_download=1&drive_link=${encodeURIComponent(driveLink)}`;
         const eventSource = new EventSource(url);
 
         eventSource.onmessage = (event) => {
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = JSON.parse(event.data);
             const p = document.createElement('p');
-            p.innerHTML = > ${data.message}; // Xabarni HTML sifatida qo'yish
+            p.innerHTML = `> ${data.message}`; // Xabarni HTML sifatida qo'yish
             
             if (data.event) {
                 p.classList.add(data.event);
