@@ -1,7 +1,7 @@
 <?php
 // =================================================================
 // Google Drive Downloader (Matrix Edition)
-// © 2024 SamDevX. Barcha huquqlar himoyalangan.
+// © 2026 SamDevX. Barcha huquqlar himoyalangan.
 // Ushbu skript Google Drive'dagi katta hajmli fayllarni,
 // jumladan virus skanerlash sahifasini chetlab o'tib
 // yuklab olish uchun mo'ljallangan.
