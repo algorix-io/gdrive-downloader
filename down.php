@@ -291,6 +291,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
         background: var(--matrix-green);
         color: var(--background);
     }
+    button:focus-visible, input[type=submit]:focus-visible {
+        outline: none;
+        box-shadow: var(--border-glow);
+    }
     button:disabled {
         border-color: #555;
         color: #555;
@@ -369,7 +373,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
     </form>
     <?php endif; ?>
 
-    <div class="log-window" id="logWindow" aria-live="polite" role="log">
+    <div class="log-window" id="logWindow" aria-live="polite" role="log" tabindex="0">
     <?php
     // Parol xatosi kabi bir martalik xabarlarni ko'rsatish
     if (!empty($responseLog)) {
