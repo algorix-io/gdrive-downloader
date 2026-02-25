@@ -470,7 +470,12 @@ document.addEventListener('DOMContentLoaded', () => {
             newCursorP.innerHTML = '> <span id="cursor" class="blinking-cursor"></span>';
             logWindow.appendChild(newCursorP);
             
-            logWindow.scrollTop = logWindow.scrollHeight; // Avtomatik pastga o'tkazish
+            // Only auto-scroll if user is near the bottom
+            const threshold = 100; // Increased threshold to catch up with rapid logs
+            const isNearBottom = logWindow.scrollHeight - logWindow.scrollTop - logWindow.clientHeight <= threshold;
+            if (isNearBottom) {
+                logWindow.scrollTop = logWindow.scrollHeight;
+            }
             
             // Jarayon tugaganda
             if (data.event === 'complete' || data.event === 'error') {
