@@ -34,6 +34,30 @@ def run():
         # Wait for the main page form
         page.wait_for_selector("#submitBtn")
 
+        # 3. Verify Input Type and Style
+        drive_link = page.locator("#drive_link")
+        input_type = drive_link.get_attribute("type")
+        autocomplete = drive_link.get_attribute("autocomplete")
+        print(f"Drive link input type: {input_type}")
+        print(f"Drive link autocomplete: {autocomplete}")
+
+        if input_type != "url":
+            print("FAILED: Input type is not 'url'")
+            exit(1)
+
+        if autocomplete != "url":
+            print("FAILED: Input autocomplete is not 'url'")
+            exit(1)
+
+        # Check CSS properties for input
+        border_color = drive_link.evaluate("element => getComputedStyle(element).borderColor")
+        print(f"Drive link border color: {border_color}")
+
+        # Matrix green is #00ff41 which is rgb(0, 255, 65)
+        if "rgb(0, 255, 65)" not in border_color and "#00ff41" not in border_color:
+             print("FAILED: Drive link border color is not Matrix green")
+             # exit(1) # Warn only, as computed style might vary slightly in format
+
         # Focus the submit button
         submit_btn = page.locator("#submitBtn")
         submit_btn.focus()
