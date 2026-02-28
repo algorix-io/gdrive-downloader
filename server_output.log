@@ -1,0 +1,13 @@
+[Sat Feb 28 02:42:56 2026] PHP 8.3.6 Development Server (http://localhost:8000) started
+[Sat Feb 28 02:43:08 2026] [::1]:35880 Accepted
+[Sat Feb 28 02:43:08 2026] [::1]:35880 [200]: GET /down.php
+[Sat Feb 28 02:43:08 2026] [::1]:35880 Closing
+[Sat Feb 28 02:43:09 2026] [::1]:35888 Accepted
+[Sat Feb 28 02:43:09 2026] [::1]:35888 [200]: POST /down.php
+[Sat Feb 28 02:43:09 2026] [::1]:35888 Closing
+[Sat Feb 28 02:43:30 2026] [::1]:53932 Accepted
+[Sat Feb 28 02:43:30 2026] [::1]:53932 [200]: GET /down.php
+[Sat Feb 28 02:43:30 2026] [::1]:53932 Closing
+[Sat Feb 28 02:43:30 2026] [::1]:53934 Accepted
+[Sat Feb 28 02:43:30 2026] [::1]:53934 [200]: POST /down.php
+[Sat Feb 28 02:43:30 2026] [::1]:53934 Closing
