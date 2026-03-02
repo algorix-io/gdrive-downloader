@@ -358,11 +358,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
     <h1>G-DRIVE DOWNLOADER [MATRIX CORE]</h1>
 
     <?php if (empty($_SESSION['access_granted'])): ?>
-    <form method="POST">
+    <form method="POST" id="loginForm">
         <label for="access_password">ACCESS CODE REQUIRED:</label>
         <input type="password" name="access_password" id="access_password" placeholder="************" required autofocus />
         <br/>
-        <input type="submit" value="[ENTER]" />
+        <button type="submit" id="loginBtn">[ENTER]</button>
     </form>
     <?php else: ?>
     <form id="downloadForm" novalidate>
@@ -393,6 +393,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['access_password'])) {
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+
+    if (loginForm && loginBtn) {
+        loginForm.addEventListener('submit', () => {
+            loginBtn.disabled = true;
+            loginBtn.textContent = '[DECRYPTING...]';
+        });
+    }
+
     const downloadForm = document.getElementById('downloadForm');
     if (!downloadForm) return;
 
