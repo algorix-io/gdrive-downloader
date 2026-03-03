@@ -28,7 +28,32 @@ def run():
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Verify synchronous loading UX
+            page.evaluate("""
+                const form = document.getElementById('loginForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    // We prevent default to inspect the UI state during "submission"
+                }, { once: true });
+            """)
+
+            page.click("#loginBtn")
+
+            # Check if button disabled and text updated
+            btn = page.locator("#loginBtn")
+            is_disabled = btn.is_disabled()
+            btn_text = btn.text_content()
+
+            print(f"Login Button Disabled: {is_disabled}")
+            print(f"Login Button Text: {btn_text}")
+
+            if not is_disabled or "[DECRYPTING...]" not in btn_text:
+                print("FAILED: Login button loading state not applied properly.")
+                exit(1)
+
+            # Now actually submit to proceed with test
+            page.evaluate("document.getElementById('loginForm').submit();")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
