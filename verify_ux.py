@@ -22,13 +22,58 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
-        # 2. Verify Button Focus Style
-        # First, we need to login because the main button is behind auth
-        # Check if we are at login
+        # 2. Verify Loading State and Disabled Styles on Login Button
         if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+            print("Verifying login loading state...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Use evaluate to add a preventDefault listener so we can check the loading state
+            # without the page navigating away immediately.
+            page.evaluate("""() => {
+                const form = document.getElementById('loginForm');
+                if(form) {
+                    form.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                    });
+                }
+            }""")
+
+            login_btn = page.locator("#loginBtn")
+            login_btn.click()
+
+            # Wait a tiny bit for the setTimeout to trigger
+            page.wait_for_timeout(100)
+
+            # Assert text changed
+            btn_text = login_btn.inner_text()
+            print(f"Login button text after submit: {btn_text}")
+            if btn_text != "[DECRYPTING...]":
+                print("FAILED: Login button text did not change to [DECRYPTING...]")
+                exit(1)
+
+            # Assert button is disabled
+            is_disabled = login_btn.is_disabled()
+            print(f"Login button is disabled: {is_disabled}")
+            if not is_disabled:
+                print("FAILED: Login button is not disabled")
+                exit(1)
+
+            # Assert disabled style - hover should not apply background color
+            # First force a hover
+            login_btn.hover(force=True)
+            bg_color = login_btn.evaluate("element => getComputedStyle(element).backgroundColor")
+            print(f"Disabled login button background color on hover: {bg_color}")
+            if bg_color != "rgba(0, 0, 0, 0)": # transparent
+                print("FAILED: Disabled button hover style is not transparent")
+                exit(1)
+
+            # Take a screenshot of the disabled state
+            page.screenshot(path="verification_login_disabled.png")
+
+            # Now actually submit by removing our listener and triggering submit, or just reloading and doing it normally
+            page.goto("http://localhost:8000/down.php")
+            page.fill("input[name='access_password']", "matrixCore2025")
+            page.click("#loginBtn")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
