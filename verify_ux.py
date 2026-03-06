@@ -26,9 +26,28 @@ def run():
         # First, we need to login because the main button is behind auth
         # Check if we are at login
         if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+            print("Testing login form visual loading state...")
+
+            # Temporarily block form submission to test UI state
+            page.evaluate("""
+                window.__loginListener = function(e) { e.preventDefault(); };
+                document.getElementById('loginForm').addEventListener('submit', window.__loginListener);
+            """)
+
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+            page.click("#loginBtn")
+
+            # Assert loading state
+            login_btn = page.locator("#loginBtn")
+            assert login_btn.is_disabled() == True, "Login button should be disabled after click"
+            assert login_btn.text_content() == "[DECRYPTING...]", "Login button text should change to [DECRYPTING...]"
+            print("Login loading state verified.")
+
+            # Remove the listener and actually submit to proceed with remaining tests
+            page.evaluate("""
+                document.getElementById('loginForm').removeEventListener('submit', window.__loginListener);
+                document.getElementById('loginForm').submit();
+            """)
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
