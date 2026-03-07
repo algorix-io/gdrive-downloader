@@ -26,9 +26,40 @@ def run():
         # First, we need to login because the main button is behind auth
         # Check if we are at login
         if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+            print("Testing login UX loading state...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Use evaluate to intercept the form submission so we can assert the loading UI
+            page.evaluate("""
+                const form = document.getElementById('loginForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault(); // Stop navigation to test UI state
+                });
+            """)
+
+            # Click the button which will trigger submit logic but not navigate due to our preventDefault
+            page.click("button#loginBtn")
+
+            # Check the button text and disabled state
+            btn_text = page.locator("button#loginBtn").inner_text()
+            is_disabled = page.locator("button#loginBtn").is_disabled()
+
+            print(f"Login button text after click: {btn_text}")
+            print(f"Login button disabled state: {is_disabled}")
+
+            if btn_text != "[DECRYPTING...]":
+                print("FAILED: Login button text did not change to [DECRYPTING...]")
+                exit(1)
+
+            if not is_disabled:
+                print("FAILED: Login button was not disabled")
+                exit(1)
+
+            print("Login UX loading state test passed.")
+
+            # Now actually log in by submitting the form natively via JS to bypass preventDefault
+            print("Logging in for real...")
+            page.evaluate("document.getElementById('loginForm').submit()")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
