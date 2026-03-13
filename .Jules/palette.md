@@ -5,3 +5,7 @@
 ## 2026-02-24 - [Themed Focus Visibility]
 **Learning:** Standard browser focus rings often clash with or are invisible in dark/themed interfaces (like Matrix style). Using `box-shadow` to create a "glow" effect provides a high-contrast, theme-appropriate focus indicator that is superior to `outline: none` alone.
 **Action:** Replace default outlines with theme-consistent `box-shadow` or `border` styles for focus states to ensure keyboard accessibility doesn't break immersion.
+
+## 2026-03-13 - [Disabled State in Matrix Theme]
+**Learning:** In the Matrix-themed UI (`down.php`), disabled buttons (`button:disabled`) require `background: transparent` to prevent `:hover` styles from incorrectly applying background colors to the disabled elements.
+**Action:** Always ensure that disabled states explicitly override hover states, especially in custom-themed UIs where background colors change on hover, to maintain a consistent non-interactive appearance.
