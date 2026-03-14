@@ -28,7 +28,39 @@ def run():
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Verify synchronous form submission loading state pattern
+            print("Verifying login loading state...")
+
+            # Intercept submit to prevent navigation so we can verify UI
+            page.evaluate("""() => {
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    window.__loginSubmitIntercepted = true;
+                });
+            }""")
+
+            # Click login btn
+            page.click("#loginBtn")
+
+            # Wait a tiny bit and verify btn state
+            page.wait_for_timeout(100)
+
+            login_btn = page.locator("#loginBtn")
+            is_disabled = login_btn.evaluate("el => el.disabled")
+            btn_text = login_btn.inner_text()
+
+            if not is_disabled or btn_text != "[DECRYPTING...]":
+                print(f"FAILED: Login button loading state incorrect. Disabled: {is_disabled}, Text: {btn_text}")
+                exit(1)
+            else:
+                print("SUCCESS: Login button loading state verified.")
+
+            # Now actually log in by submitting the form natively via JS since we prevented default
+            # Or we can just reload and login without intercept
+            page.reload()
+            page.fill("input[name='access_password']", "matrixCore2025")
+            page.click("#loginBtn")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
