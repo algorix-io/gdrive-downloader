@@ -26,9 +26,42 @@ def run():
         # First, we need to login because the main button is behind auth
         # Check if we are at login
         if page.locator("input[name='access_password']").count() > 0:
+            print("Verifying loading UI on login...")
+            # We intercept the submit to check if visual changes occur without page reloading
+            page.evaluate("""() => {
+                const form = document.querySelector('form');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                });
+            }""")
+
+            page.fill("input[name='access_password']", "matrixCore2025")
+            if page.locator("button#loginBtn").count() > 0:
+                page.click("button#loginBtn")
+            else:
+                page.click("input[type='submit']")
+
+            # Now we should see the loading state
+            if page.locator("button#loginBtn").count() > 0:
+                btn = page.locator("button#loginBtn")
+                if not btn.is_disabled():
+                    print("FAILED: loginBtn is not disabled after submit")
+                    exit(1)
+                text = btn.text_content()
+                if "DECRYPTING" not in text:
+                    print(f"FAILED: loginBtn text doesn't contain DECRYPTING, got {text}")
+                    exit(1)
+
+            print("Reloading to actually log in...")
+            # Now actually log in by removing the preventDefault logic (reload the page)
+            page.reload()
+
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+            if page.locator("button#loginBtn").count() > 0:
+                page.click("button#loginBtn")
+            else:
+                page.click("input[type='submit']")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
