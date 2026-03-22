@@ -5,3 +5,6 @@
 ## 2026-02-24 - [Themed Focus Visibility]
 **Learning:** Standard browser focus rings often clash with or are invisible in dark/themed interfaces (like Matrix style). Using `box-shadow` to create a "glow" effect provides a high-contrast, theme-appropriate focus indicator that is superior to `outline: none` alone.
 **Action:** Replace default outlines with theme-consistent `box-shadow` or `border` styles for focus states to ensure keyboard accessibility doesn't break immersion.
+## 2026-03-22 - [Form Loading State Micro-UX]
+**Learning:** Adding immediate visual feedback (like disabling buttons and changing text to "DECRYPTING...") on synchronous form submissions prevents duplicate clicks and improves the perceived performance of the interface, enhancing the themed immersion.
+**Action:** When creating themed interfaces, replace default submit inputs with styled `<button type="submit">` elements and use JavaScript to provide theme-appropriate loading states before the server responds.
