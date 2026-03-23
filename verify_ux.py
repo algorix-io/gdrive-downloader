@@ -22,14 +22,42 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
-        # 2. Verify Button Focus Style
-        # First, we need to login because the main button is behind auth
-        # Check if we are at login
+        # 2. Verify Synchronous Loading State on Login Form
         if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+            print("Checking login form loading state...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Prevent default to capture the UI state
+            page.evaluate("""() => {
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                });
+            }""")
+
+            page.click("button#loginBtn")
+
+            # Verify the button text changed and is disabled
+            login_btn = page.locator("button#loginBtn")
+            btn_text = login_btn.inner_text()
+            is_disabled = login_btn.is_disabled()
+
+            print(f"Login Button text after submit: {btn_text}")
+            print(f"Login Button disabled state: {is_disabled}")
+
+            if "DECRYPTING" not in btn_text or not is_disabled:
+                print("FAILED: Login button loading state not properly set.")
+                exit(1)
+
+            page.screenshot(path="verification_login_loading.png")
+
+            # Reload page to bypass our preventDefault and actually login
+            page.reload()
+            page.fill("input[name='access_password']", "matrixCore2025")
+            page.click("button#loginBtn")
             page.wait_for_load_state("networkidle")
+
+        # 3. Verify Button Focus Style
+        # Now we should be logged in and at the main download form
 
         # Wait for the main page form
         page.wait_for_selector("#submitBtn")
