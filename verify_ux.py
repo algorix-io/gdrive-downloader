@@ -1,64 +1,46 @@
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Page, expect, sync_playwright
 
-def run():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto("http://localhost:8000/down.php")
+def verify_feature(page: Page):
+    page.goto("http://localhost:8000/down.php")
+    page.wait_for_timeout(500)
 
-        # 1. Verify Log Window is focusable (tabindex="0")
-        log_window = page.locator("#logWindow")
-        # Log window is present on the login page too? Let's check.
-        # Yes, it is.
+    # Fill in the password
+    password_input = page.locator("#access_password")
+    password_input.fill("testpassword")
+    page.wait_for_timeout(500)
 
-        tabindex = log_window.get_attribute("tabindex")
-        print(f"Log Window tabindex: {tabindex}")
+    # Click the ENTER button
+    enter_button = page.locator("#loginBtn")
 
-        if tabindex != "0":
-            print("FAILED: Log window does not have tabindex='0'")
-            exit(1)
+    # In order to see the visual loading state without the page navigating away,
+    # we can use page.evaluate to add a temporary preventDefault to the form
+    page.evaluate("""() => {
+        const form = document.getElementById('loginForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+        });
+    }""")
 
-        # Focus the log window and take screenshot
-        log_window.focus()
-        page.screenshot(path="verification_log_focus.png")
+    enter_button.click()
 
-        # 2. Verify Button Focus Style
-        # First, we need to login because the main button is behind auth
-        # Check if we are at login
-        if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
-            page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
-            page.wait_for_load_state("networkidle")
+    # Wait a bit for the setTimeout to run and the UI to update
+    page.wait_for_timeout(500)
 
-        # Wait for the main page form
-        page.wait_for_selector("#submitBtn")
+    # Assert the button is disabled and has the correct text
+    expect(enter_button).to_be_disabled()
+    expect(enter_button).to_have_text("[DECRYPTING...]")
 
-        # Focus the submit button
-        submit_btn = page.locator("#submitBtn")
-        submit_btn.focus()
-
-        # Take a screenshot of the focused button
-        page.screenshot(path="verification_button_focus.png")
-
-        # Check CSS properties
-        # We want to verify that outline is none and box-shadow is applied
-        # Note: box-shadow might be complex to parse, but we can check if it's not 'none'
-        box_shadow = submit_btn.evaluate("element => getComputedStyle(element).boxShadow")
-        outline_style = submit_btn.evaluate("element => getComputedStyle(element).outlineStyle")
-
-        print(f"Button outline style: {outline_style}")
-        print(f"Button box shadow: {box_shadow}")
-
-        # In some browsers, :focus-visible only applies on keyboard interaction.
-        # .focus() might trigger :focus, but our CSS targets :focus-visible.
-        # However, Playwright's .focus() usually behaves like a script focus.
-        # Let's try to simulate Tab navigation to be sure.
-        page.locator("#drive_link").focus()
-        page.keyboard.press("Tab")
-        page.screenshot(path="verification_tab_focus.png")
-
-        browser.close()
+    # Capture screenshot
+    page.screenshot(path="/home/jules/verification/verification.png")
+    page.wait_for_timeout(1000)
 
 if __name__ == "__main__":
-    run()
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(record_video_dir="/home/jules/verification/video")
+        page = context.new_page()
+        try:
+            verify_feature(page)
+        finally:
+            context.close()
+            browser.close()
