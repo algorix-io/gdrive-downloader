@@ -22,13 +22,45 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
+        # 1.5 Verify Synchronous Loading State on Login Form
+        if page.locator("#loginForm").count() > 0:
+            print("Testing login loading state...")
+            page.fill("input[name='access_password']", "matrixCore2025")
+
+            # Prevent default to observe the disabled state without navigating
+            page.evaluate("""() => {
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                });
+            }""")
+
+            login_btn = page.locator("#loginBtn")
+            login_btn.click()
+
+            # Wait a moment for DOM to update
+            page.wait_for_timeout(100)
+
+            btn_text = login_btn.inner_text()
+            btn_disabled = login_btn.get_attribute("disabled")
+
+            if btn_text != "[DECRYPTING...]":
+                print(f"FAILED: Login button text was '{btn_text}' instead of '[DECRYPTING...]'")
+                exit(1)
+
+            if btn_disabled is None:
+                print("FAILED: Login button is not disabled after submit")
+                exit(1)
+
+            print("Login loading state verified. Reloading to proceed with actual login.")
+            page.reload()
+
         # 2. Verify Button Focus Style
         # First, we need to login because the main button is behind auth
         # Check if we are at login
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+            page.click("#loginBtn")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
