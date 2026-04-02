@@ -26,9 +26,35 @@ def run():
         # First, we need to login because the main button is behind auth
         # Check if we are at login
         if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+            print("Testing loading state and logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Temporarily prevent default to check loading state
+            page.evaluate("""() => {
+                window.__loginListener = (e) => e.preventDefault();
+                document.getElementById('loginForm').addEventListener('submit', window.__loginListener);
+            }""")
+
+            page.click("#loginBtn")
+
+            # Verify the button changed to DECRYPTING... and is disabled
+            login_btn = page.locator("#loginBtn")
+            text = login_btn.inner_text()
+            disabled = login_btn.is_disabled()
+
+            print(f"Login button text after click: {text}")
+            print(f"Login button disabled after click: {disabled}")
+
+            if text != "[DECRYPTING...]" or not disabled:
+                print("FAILED: Login button did not show loading state properly.")
+                exit(1)
+
+            # Remove the listener and submit for real
+            page.evaluate("""() => {
+                document.getElementById('loginForm').removeEventListener('submit', window.__loginListener);
+                document.getElementById('loginForm').submit();
+            }""")
+
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
