@@ -28,7 +28,28 @@ def run():
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Verify loading state
+            page.evaluate("""
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault(); // Prevent actual submission to check UI state
+                }, { once: true });
+            """)
+            page.click("#loginBtn")
+
+            # Check if button is disabled and text is changed
+            login_btn = page.locator("#loginBtn")
+            if not login_btn.is_disabled():
+                print("FAILED: Login button is not disabled upon submission")
+                exit(1)
+
+            if login_btn.inner_text() != "[DECRYPTING...]":
+                print(f"FAILED: Login button text is '{login_btn.inner_text()}' instead of '[DECRYPTING...]'")
+                exit(1)
+
+            print("Loading state verified. Proceeding with login...")
+            # Submit normally
+            page.evaluate("document.getElementById('loginForm').submit()")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
