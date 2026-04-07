@@ -22,13 +22,34 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
-        # 2. Verify Button Focus Style
+        # 2. Verify Synchronous Login Loading State & Button Focus Style
         # First, we need to login because the main button is behind auth
         # Check if we are at login
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Verify synchronous form loading state by intercepting the submit event
+            # to prevent actual navigation but trigger the UI change
+            page.evaluate("""
+                document.getElementById('loginForm').addEventListener('submit', function(e) {
+                    e.preventDefault(); // Stop navigation to check UI state
+                });
+            """)
+            page.click("#loginBtn")
+
+            # Verify the button is disabled and shows DECRYPTING text
+            is_disabled = page.locator("#loginBtn").is_disabled()
+            btn_text = page.locator("#loginBtn").inner_text()
+
+            if not is_disabled or btn_text != "[DECRYPTING...]":
+                print(f"FAILED: Synchronous loading state not applied properly. Disabled: {is_disabled}, Text: {btn_text}")
+                exit(1)
+            else:
+                print("PASSED: Synchronous loading state correctly applied.")
+
+            # Now really log in
+            page.evaluate("document.getElementById('loginForm').submit();")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
