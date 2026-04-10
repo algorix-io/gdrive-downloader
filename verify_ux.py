@@ -28,7 +28,7 @@ def run():
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+            page.click("#loginBtn")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
