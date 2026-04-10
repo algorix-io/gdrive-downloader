@@ -5,3 +5,7 @@
 ## 2026-02-24 - [Themed Focus Visibility]
 **Learning:** Standard browser focus rings often clash with or are invisible in dark/themed interfaces (like Matrix style). Using `box-shadow` to create a "glow" effect provides a high-contrast, theme-appropriate focus indicator that is superior to `outline: none` alone.
 **Action:** Replace default outlines with theme-consistent `box-shadow` or `border` styles for focus states to ensure keyboard accessibility doesn't break immersion.
+
+## 2026-04-10 - [Synchronous Feedback Importance]
+**Learning:** In UIs that heavily utilize synchronous operations (like traditional form POSTs for login), failing to provide immediate visual feedback (e.g., disabling the submit button and updating its text) can lead to user confusion and duplicate submissions, degrading the perceived performance.
+**Action:** Even for synchronous actions, inject JavaScript to immediately disable the submission trigger and update its label (e.g., from '[ENTER]' to '[DECRYPTING...]') right at the moment of submission.
