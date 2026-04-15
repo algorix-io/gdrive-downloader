@@ -22,14 +22,45 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
-        # 2. Verify Button Focus Style
-        # First, we need to login because the main button is behind auth
-        # Check if we are at login
+        # Verify Login Loading State
         if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+            print("Verifying loading state on login...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Use page.evaluate to prevent default to see loading state
+            page.evaluate("""() => {
+                const form = document.getElementById('loginForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                });
+            }""")
+
+            page.click("#loginBtn")
+
+            # Assert loading state text and disabled
+            login_btn = page.locator("#loginBtn")
+            btn_text = login_btn.inner_text()
+            is_disabled = login_btn.is_disabled()
+
+            print(f"Login button text: {btn_text}")
+            print(f"Login button disabled: {is_disabled}")
+
+            if btn_text != "[DECRYPTING...]" or not is_disabled:
+                print("FAILED: Login button didn't show loading state")
+                exit(1)
+
+            # Now actually submit to proceed
+            page.evaluate("""() => {
+                const form = document.getElementById('loginForm');
+                // Remove all event listeners by replacing the form
+                const newForm = form.cloneNode(true);
+                form.parentNode.replaceChild(newForm, form);
+                newForm.submit();
+            }""")
             page.wait_for_load_state("networkidle")
+
+        # 2. Verify Button Focus Style
+        # Main button is behind auth
 
         # Wait for the main page form
         page.wait_for_selector("#submitBtn")
