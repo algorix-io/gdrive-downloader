@@ -28,7 +28,31 @@ def run():
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Test the synchronous form submission loading state using page.evaluate
+            # to intercept the submission and prevent navigation.
+            page.evaluate('''() => {
+                const form = document.getElementById('loginForm');
+                if (form) {
+                    form.addEventListener('submit', (e) => {
+                        e.preventDefault(); // Prevent actual navigation for testing UI
+                    });
+                }
+            }''')
+
+            # Click login button which should trigger the loading state change
+            page.click("#loginBtn")
+
+            # Verify the button state changes
+            login_btn = page.locator("#loginBtn")
+            assert login_btn.get_attribute("disabled") == "", "Login button should be disabled after click"
+            assert login_btn.inner_text() == "[DECRYPTING...]", "Login button text should change to [DECRYPTING...]"
+            print("Loading state verified successfully.")
+
+            # Perform the actual login by removing the preventDefault and submitting properly
+            page.reload()
+            page.fill("input[name='access_password']", "matrixCore2025")
+            page.click("#loginBtn")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
