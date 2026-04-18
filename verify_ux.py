@@ -28,7 +28,36 @@ def run():
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Verify loading state on synchronous login form
+            print("Verifying login loading state...")
+            # Temporarily prevent default to check loading state
+            page.evaluate("""
+                const loginForm = document.getElementById('loginForm');
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    window._loginSubmitted = true;
+                });
+            """)
+
+            login_btn = page.locator("#loginBtn")
+            login_btn.click()
+
+            # Check button state
+            btn_text = login_btn.inner_text()
+            is_disabled = login_btn.is_disabled()
+            print(f"Login button text after click: {btn_text}")
+            print(f"Login button disabled after click: {is_disabled}")
+
+            if btn_text != "[DECRYPTING...]" or not is_disabled:
+                print("FAILED: Login loading state is incorrect")
+                exit(1)
+
+            # Programmatically submit to actually log in
+            page.evaluate("""
+                const loginForm = document.getElementById('loginForm');
+                loginForm.submit();
+            """)
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
