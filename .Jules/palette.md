@@ -5,3 +5,7 @@
 ## 2026-02-24 - [Themed Focus Visibility]
 **Learning:** Standard browser focus rings often clash with or are invisible in dark/themed interfaces (like Matrix style). Using `box-shadow` to create a "glow" effect provides a high-contrast, theme-appropriate focus indicator that is superior to `outline: none` alone.
 **Action:** Replace default outlines with theme-consistent `box-shadow` or `border` styles for focus states to ensure keyboard accessibility doesn't break immersion.
+
+## 2026-02-24 - [Synchronous Form Feedback & Testing]
+**Learning:** Even synchronous form submissions should have immediate visual loading states to prevent duplicate clicks and improve perceived performance. Testing these states requires preventing the default navigation.
+**Action:** Use `e.preventDefault()` in Playwright tests (`page.evaluate`) to halt form submission, allowing visual assertions on the loading state before manually proceeding with the submission.
