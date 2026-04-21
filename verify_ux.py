@@ -22,14 +22,43 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
-        # 2. Verify Button Focus Style
-        # First, we need to login because the main button is behind auth
-        # Check if we are at login
+        # 2. Verify Login Loading State
+        # If we are on the login page, check the visual loading state
         if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+            print("Checking login loading state...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Prevent default to stay on the page and verify the loading state
+            page.evaluate("""
+                const form = document.getElementById('loginForm');
+                if (form) {
+                    form.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                    });
+                }
+            """)
+
+            page.click("#loginBtn")
+
+            # Verify button is disabled and text changed
+            login_btn = page.locator("#loginBtn")
+            is_disabled = login_btn.get_attribute("disabled") is not None
+            btn_text = login_btn.inner_text()
+
+            print(f"Login button disabled: {is_disabled}")
+            print(f"Login button text: {btn_text}")
+
+            if not is_disabled or "[DECRYPTING...]" not in btn_text:
+                print("FAILED: Login button loading state not applied correctly.")
+                exit(1)
+
+            # Now actually log in by removing the preventDefault and submitting again
+            # We can just reload or evaluate a form.submit() directly
+            page.evaluate("document.getElementById('loginForm').submit()")
             page.wait_for_load_state("networkidle")
+
+        # 3. Verify Button Focus Style
+        # Wait for the main page form
 
         # Wait for the main page form
         page.wait_for_selector("#submitBtn")
