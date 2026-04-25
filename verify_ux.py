@@ -22,13 +22,37 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
-        # 2. Verify Button Focus Style
+        # 2. Verify Button Focus Style and Login Loading State
         # First, we need to login because the main button is behind auth
         # Check if we are at login
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Add a listener to intercept the submit to test the visual loading state
+            page.evaluate("""() => {
+                const form = document.getElementById('loginForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    window._loginIntercepted = true;
+                });
+            }""")
+
+            page.click("button[type='submit']")
+
+            # Wait for the JS to disable the button and change text
+            page.wait_for_function("document.getElementById('loginBtn').disabled === true")
+
+            login_btn = page.locator("#loginBtn")
+            btn_text = login_btn.inner_text()
+            print(f"Login button text during submit: {btn_text}")
+            if btn_text != "[DECRYPTING...]":
+                print("FAILED: Login button text did not change to [DECRYPTING...]")
+                exit(1)
+
+            # Now actually submit the form to continue the test
+            page.evaluate("document.getElementById('loginForm').submit()")
+
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
