@@ -22,14 +22,37 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
-        # 2. Verify Button Focus Style
-        # First, we need to login because the main button is behind auth
-        # Check if we are at login
+        # 2. Verify Login Form Visual Loading State
         if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+            print("Verifying visual loading state on login...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Intercept form submission to inspect the loading state
+            page.evaluate("""
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                });
+            """)
+
+            # Click the login button, which triggers the loading state but not page load due to intercept
+            page.click("#loginBtn")
+
+            # Verify the button text and disabled state
+            login_btn = page.locator("#loginBtn")
+            btn_text = login_btn.inner_text()
+            is_disabled = login_btn.is_disabled()
+
+            if btn_text != "[DECRYPTING...]" or not is_disabled:
+                print(f"FAILED: Login button loading state incorrect. Text: {btn_text}, Disabled: {is_disabled}")
+                exit(1)
+            else:
+                print("Login button visual loading state is correct.")
+
+            # Submit the form for real to proceed
+            page.evaluate("document.getElementById('loginForm').submit();")
             page.wait_for_load_state("networkidle")
+
+        # 3. Verify Button Focus Style
 
         # Wait for the main page form
         page.wait_for_selector("#submitBtn")
