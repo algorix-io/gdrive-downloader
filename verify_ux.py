@@ -22,13 +22,46 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
-        # 2. Verify Button Focus Style
-        # First, we need to login because the main button is behind auth
-        # Check if we are at login
+        # 2. Verify Synchronous Loading State for Login Form
         if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+            print("Testing login loading state...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Add event listener to prevent form submission to verify the loading state
+            page.evaluate('''() => {
+                const form = document.getElementById('loginForm');
+                if (form) {
+                    form.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                    });
+                }
+            }''')
+
+            page.click("#loginBtn")
+
+            # Verify the button is disabled and text changed to [DECRYPTING...]
+            login_btn = page.locator("#loginBtn")
+            is_disabled = login_btn.evaluate("element => element.disabled")
+            text_content = login_btn.text_content()
+
+            if not is_disabled:
+                print("FAILED: Login button is not disabled during submission")
+                exit(1)
+
+            if text_content != "[DECRYPTING...]":
+                print(f"FAILED: Login button text is '{text_content}', expected '[DECRYPTING...]'")
+                exit(1)
+
+            print("Login loading state verified successfully.")
+
+            # Proceed with actual login by submitting the form directly
+            print("Proceeding with login...")
+            page.evaluate('''() => {
+                const form = document.getElementById('loginForm');
+                if (form) {
+                    form.submit();
+                }
+            }''')
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
