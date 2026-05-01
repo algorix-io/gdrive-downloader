@@ -22,13 +22,44 @@ def run():
         log_window.focus()
         page.screenshot(path="verification_log_focus.png")
 
-        # 2. Verify Button Focus Style
-        # First, we need to login because the main button is behind auth
-        # Check if we are at login
-        if page.locator("input[name='access_password']").count() > 0:
-            print("Logging in...")
+        # 2. Verify Login Button Loading State
+        if page.locator("#loginForm").count() > 0:
+            print("Checking login form loading state...")
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+
+            # Use evaluate to add preventDefault so we can inspect the state after clicking
+            page.evaluate('''() => {
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                }, { capture: true }); // capture to run before or after the existing one depending, but here we just want to stop navigation
+            }''')
+
+            # Note: capturing preventDefault might prevent the inline handler if it's relying on default action,
+            # but our handler in down.php just listens to 'submit'. It doesn't depend on default action happening.
+            page.click("#loginBtn")
+
+            # Wait a tick for JS to run
+            page.wait_for_timeout(100)
+
+            login_btn = page.locator("#loginBtn")
+            is_disabled = login_btn.is_disabled()
+            text_content = login_btn.text_content()
+
+            print(f"Login Button Disabled: {is_disabled}")
+            print(f"Login Button Text: {text_content}")
+
+            if not is_disabled or "[DECRYPTING...]" not in text_content:
+                print("FAILED: Login button loading state not applied correctly.")
+                exit(1)
+
+            # Take a screenshot of the loading state
+            page.screenshot(path="verification_login_loading.png")
+            print("Login button loading state verified.")
+
+            # Now let's reload and actually login
+            page.reload()
+            page.fill("input[name='access_password']", "matrixCore2025")
+            page.click("#loginBtn")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
