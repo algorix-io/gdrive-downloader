@@ -27,8 +27,59 @@ def run():
         # Check if we are at login
         if page.locator("input[name='access_password']").count() > 0:
             print("Logging in...")
+
+            # Verify visual loading state on login
+            print("Verifying login loading state...")
+            # We intercept the submit to prevent navigation so we can see the loading state
+            page.evaluate('''() => {
+                const form = document.getElementById('loginForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                });
+            }''')
+
             page.fill("input[name='access_password']", "matrixCore2025")
-            page.click("input[type='submit']")
+            page.click("button[id='loginBtn']")
+
+            # Now verify button state
+            login_btn = page.locator("button[id='loginBtn']")
+            is_disabled = login_btn.is_disabled()
+            text_content = login_btn.text_content()
+
+            print(f"Login button disabled: {is_disabled}")
+            print(f"Login button text: {text_content}")
+
+            if not is_disabled or text_content != "[DECRYPTING...]":
+                print("FAILED: Login button did not enter loading state")
+                exit(1)
+
+            # Now actually login
+            page.evaluate('''() => {
+                const form = document.getElementById('loginForm');
+                // Remove the preventDefault listener by cloning and replacing the form
+                const newForm = form.cloneNode(true);
+                form.parentNode.replaceChild(newForm, form);
+
+                // Re-attach our loading state script since cloning removes it
+                newForm.addEventListener('submit', () => {
+                    const btn = document.getElementById('loginBtn');
+                    if(btn) {
+                        btn.disabled = true;
+                        btn.textContent = '[DECRYPTING...]';
+                    }
+                });
+            }''')
+
+            # Note: since the button might be disabled from the previous click, we re-enable it for the real submit
+            page.evaluate('''() => {
+                const btn = document.getElementById('loginBtn');
+                if(btn) {
+                    btn.disabled = false;
+                    btn.textContent = '[ENTER]';
+                }
+            }''')
+
+            page.click("button[id='loginBtn']")
             page.wait_for_load_state("networkidle")
 
         # Wait for the main page form
