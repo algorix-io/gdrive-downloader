@@ -9,3 +9,7 @@
 ## 2026-04-06 - [Synchronous Loading Feedback]
 **Learning:** Even synchronous form submissions (like standard POSTs) benefit from immediate visual feedback. Disabling the submit button and changing its text to a loading state prevents duplicate clicks and improves perceived performance, which is a key UX pattern.
 **Action:** Add visual loading states (e.g., button disable + text change) to standard forms via JavaScript to provide immediate feedback before page navigation occurs.
+
+## 2026-10-24 - [Semantic Input Types and CSS Selectors]
+**Learning:** Using semantic HTML5 input types (like `type="url"`) enhances mobile UX by triggering appropriate virtual keyboards, but these changes can break theming if CSS selectors are tightly coupled to specific types (e.g., `input[type=text]`).
+**Action:** When updating input types to be more semantic, always ensure the newly introduced input types are added to existing CSS selectors (like extending `input[type=text]` rules to include `input[type=url]`) to preserve consistent visual styling across states (default, focus, error).
